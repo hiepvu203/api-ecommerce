@@ -1,37 +1,39 @@
 FROM php:8.2-apache
 
-# Cài tiện ích hệ thống và PHP extensions
+# Cài các extension cần thiết
 RUN apt-get update && apt-get install -y \
     git \
-    curl \
     zip \
     unzip \
-    libpq-dev \
+    libpng-dev \
     libonig-dev \
     libzip-dev \
-    libxml2-dev \
-    libpng-dev \
-    && docker-php-ext-install pdo pdo_pgsql mbstring zip xml gd
+    libpq-dev \
+    && docker-php-ext-install pdo pdo_pgsql mbstring zip gd
 
-# Bật mod_rewrite
+# Bật mod_rewrite cho Apache
 RUN a2enmod rewrite
 
 # Cài Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set thư mục làm việc
+# Làm việc trong thư mục này
 WORKDIR /var/www/html
 
-# Copy mã nguồn vào container
-COPY . /var/www/html
+# Copy toàn bộ code
+COPY . .
 
-# Cấp quyền cho Laravel
+# Cấp quyền
 RUN chown -R www-data:www-data /var/www/html
 
-# Cài gói và cache config Laravel
-RUN composer install --no-dev --optimize-autoloader \
-    && php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+# Cài Laravel
+RUN composer install --no-dev --optimize-autoloader
 
+# Cache config Laravel
+RUN php artisan config:cache
+
+# Cổng mặc định Apache
 EXPOSE 80
+
+# 👇 Đây là dòng quan trọng
+CMD ["apache2-foreground"]
