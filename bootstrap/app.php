@@ -22,6 +22,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'user_type' => CheckUserType::class,
+            'cors' => \Illuminate\Http\Middleware\HandleCors::class,
+        ]);
+
+        $middleware->group('api', [
+            'cors',
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
     })
     ->withEvents([
